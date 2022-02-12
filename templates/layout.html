@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>layouts for {{name}}</title>
+</head>
+<body>
+    
+    <a style="display: inline-block;" href="/">همه پروژه ها</a>  <a style="display: inline-block;" href="/edit">ویرایش معیارها </a><br>
+    <p>جا نمایی های پیشنهادی پروژه {{name}}</p>
+    {%for x  in layouts%}
+    <div style="width:350px;height:150px;border:2px solid #000 ;background-color: rgb(29, 235, 207);display: inline-block;">
+        <div>{{x['layoutname']}}</div>
+        <a href="/layout/{{name}}/{{x['idlayouts']}}">محاسبه امتیاز ایمنی و ترافیکی مدل </a><br>
+        <div> امتیاز ایمنی محاسبه شده : {{x["safetypoint"]}}</div>
+        <div>امتیاز ترافيكي محاسبه شده : {{x["traficalponit"]}}</div>
+        <div>تعداد تسهیلات :  {{x["facilitynumbers"]}}</div>
+        <a target="_blank" href="/cesiumviewer/{{x['idlayouts']}}"> مشاهده مدل سه بعدی تحت پلتفرم Cesium</a><br>
+        <a target="_blank" href="/ifcviewer/{{x['idlayouts']}}"> مشاهده مدل سه بعدی تحت پلتفرم IFC viewer</a><br>
+        <a target="_blank" href="/deletelayout/{{x['idlayouts']}}/{{name}}/{{_id}}"> حذف جانمایی</a>
+    </div>
+    {%endfor%}
+    <p> افزودن جانمایی برای پروژه {{name}}</p>
+    <div style="width:350px;height:200px;border:1px solid #000 ;background-color: rgb(29, 235, 207);display: block;">
+        <table>
+        <form action="http://localhost:5000/addlayout/{{lenlayout}}/{{name}}/{{_id}}" method="post" enctype=multipart/form-data>
+            <tr hidden>
+                <td >شناسه جانمایی </td><td><input type="number" value="{{lenlayout}}" readonly name="idlayouts"></td>
+             </tr> 
+             <tr>
+                 <td> نام جانمایی </td><td><input type="text" name="layout name"  required></td>
+             </tr>
+            
+             <tr hidden>
+                <td> شناسه پروژه </td><td><input type="text" name="idprojects" readonly required value="{{_id}}"></td>
+            </tr>
+            <tr hidden>
+                <td> نام پروژه </td><td><input type="text" name="projectname" readonly required value="{{name}}"></td>
+            </tr>
+        
+             <tr>
+                 <td> تعداد تسهیلات</td><td><input type="number" name="facilitynumbers" required ></td>
+             </tr>
+             <tr>
+             <td>انتخاب فایل مدل Tileset</td><td><input accept=".zip" type="file" id="cesiumfile" name="cesiumfile"></td>
+            </tr>
+            <tr>
+             <td>انتخاب فایل مدل IFC</td><td><input accept=".ifc" type="file" id="ifcfile" name="ifcfile"></td>
+            </tr>
+         </table>
+             <button type="submit">افزودن جانمایی</button>
+         </form>
+        </div>
+</body>
+</html>

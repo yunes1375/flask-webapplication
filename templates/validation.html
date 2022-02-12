@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>checking {{layout}} layout for project {{project}}</title>
+</head>
+<body>
+    
+    <style>
+        body{
+            font-family:"Arial", serif;
+        }
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            text-align: center;
+            position: relative;
+        }
+        
+        .table {
+            font: optional;
+            background-color: rgb(98, 221, 180);
+            font-size: 15px;
+            text-align: center;
+            position: relative;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        
+        .row {
+            font: optional;
+            background-color: white;
+            font-size: 15px;
+            text-align: center;
+            position: relative;
+        }
+        </style>
+        <script>
+            function yesno_validator(x)
+            {
+                rowindex="row"+x
+                 if (document.getElementById(x).value=="Yes"){
+                     document.getElementById(rowindex).style.backgroundColor="green";
+                 }
+                 else if ((document.getElementById(x).value=="No")){
+                     document.getElementById(rowindex).style.backgroundColor="red";
+                 }
+                 else{
+                    document.getElementById(rowindex).style.backgroundColor="white";
+                 }
+            }
+        </script>
+        <script>
+            function option_validator(x)
+            {
+                rowindex="row"+x
+                 if (document.getElementById(x).value=="reject"){
+                     document.getElementById(rowindex).style.backgroundColor="red";
+                 }
+                 else if ((document.getElementById(x).value=="low")){
+                     document.getElementById(rowindex).style.backgroundColor="orange";
+                 }
+                 else if ((document.getElementById(x).value=="average")){
+                    document.getElementById(rowindex).style.backgroundColor="yellow";
+                 }
+                else if ((document.getElementById(x).value=="high")){
+                        document.getElementById(rowindex).style.backgroundColor="green";
+                }
+                 else{
+                    document.getElementById(rowindex).style.backgroundColor="white";
+                 }
+            }
+        </script>
+        <script>
+            function instruction(filepath)
+            {
+            }
+        </script>
+        <script>
+            function limit_validator(x,low_limit,high_limit)
+            {
+                rowindex="row"+x
+                 if (document.getElementById(x).value >=low_limit && document.getElementById(x).value <=high_limit){
+                     document.getElementById(rowindex).style.backgroundColor="green";
+                 }
+                 else if(document.getElementById(x).value <=low_limit || document.getElementById(x).value >=high_limit)
+                 {
+                    document.getElementById(rowindex).style.backgroundColor="red";
+                 }
+                 else{
+                    document.getElementById(rowindex).style.backgroundColor="white";
+                 }
+            }
+        </script>
+    <!-- safety point calculator -->
+    <script>
+    function safety_calculator(){
+        
+        var formElements=document.getElementById("safety_form").elements;    
+        var postData={};
+        for (var i=0; i<formElements.length; i++)
+            if (formElements[i].type!="submit"){//we dont want to include the submit-buttom
+            postData[formElements[i].name]=formElements[i].value;
+            }
+            var postData_json=JSON.stringify(postData)
+            document.getElementById("safety_score").innerHTML="در حال محاسبه امتیاز";
+            $.ajax({
+                type: 'POST',
+                url:  '/submit/{{project}}/{{layout}}',
+                data: postData_json,
+                contentType: false,
+                cache: false,
+                processData: false,
+                success: function(data) {
+                  document.getElementById("safety_score").innerHTML=data[1];
+                  alert("امتیاز ایمنی محاسبه شده از جدول در دیتابیس برای این جانمایی به روزرسانی شد.")
+                },
+              })
+    }
+    </script>
+    <!-- add j query -->
+    <script type=module src="{{url_for('static', filename='jquery.js') }}"></script>
+    <a style="display: inline-block;" href="/">همه پروژه ها</a>  <a style="display: inline-block;" href="/edit">ویرایش معیارها </a><br>
+ 
+  <section>
+     <form id="safety_form">
+        <Table>
+            <tr class="table">
+                <th>ردیف</th>
+                <th>آیین نامه</th>
+                <th>ماده</th>
+                <th>الزامات</th>
+                <th>راهنمایی</th>
+                <th>پاسخ شما</th>
+                <th>توضیحات</th>
+                
+            </tr>
+    
+       {% for x in data: %}
+       
+       <tr class="row" id="row{{x['idcheklist']}}">
+        <td>{%print(x["idcheklist"])%} </td>
+        <td>{%print(x["regulation"])%} </td>
+        <td>{%print(x["article"])%} </td>
+        <td>{%print(x["requirement"])%} </td>
+        {%if x["guidance_type"] == "image"%}
+        <td ><a href="showimage/{{x['guidance_filepath']}}" target="_blank">مشاهده جدول</a> </td>
+        {%elif  x["guidance_type"] == "No" %}
+        <td >ندارد </td>
+       {%endif%}
+        {%if x["answer_type"] == "limit"%}
+        <td><div>low limit: {{x["low_limit"]}}</div><input onchange="limit_validator({{x['idcheklist']}},{{x['low_limit']}},{{x['high_limit']}})" id="{{x['idcheklist']}}" type="number" name= "{{x['idcheklist']}}" value="0"><br> high limit: {{x["high_limit"]}}</div></td>
+        {%elif x["answer_type"] == "yes_no"%}
+        <td>
+            <select onchange="yesno_validator({{x['idcheklist']}})" id="{{x['idcheklist']}}" name="{{x['idcheklist']}}">
+                <option id="{{x['idcheklist']}}-" value="0">---</option>
+                <option value="Yes">بله</option>
+                <option value="No">خیر</option>
+            </select>
+    </td>
+    {%elif x["answer_type"] == "4_option"%}
+    <td>
+        <select onchange="option_validator({{x['idcheklist']}})" id="{{x['idcheklist']}}" name="{{x['idcheklist']}}">
+            <option id="{{x['idcheklist']}}-" value="0">---</option>
+            <option value="reject">رد</option>
+            <option value="low">کم</option>
+            <option value="average">متوسط</option>
+            <option value="high">زیاد</option>
+        </select>
+    </td>
+    {%endif%}
+    <td><input type="text" name="description_for_{{x['idcheklist']}}"> </td>
+      {%endfor%}
+    </table>
+</form>
+  </section>
+  <p><button style="display: inline-block;" type="button" id="safety_submit" value="محاسبه شاخص ایمنی" onclick="safety_calculator()" > محاسبه شاخص ایمنی برای اطلاعات جدول</button><div style="display: inline-block;">امتیاز ایمنی محاسبه شده : {{points['safetypoint']}}</div><div id="safety_score" style="display: inline-block;"> </div></p><p id="message"></p>
+  <p> شاخص ایمنی موجود در دیتابیس: {{points[0]['safetypoint']}}</p>
+  <br>
+  <p>ماتریس فواصل ترافیکی</p>
+  <form>
+  <Table>
+      <tr>
+        {%for x in range(0,lenfacility+1)%}
+        <th>{{x}}</th>
+        {%endfor%}
+      </tr>
+{%for x in range(0,lenfacility)%}
+<tr>
+    <td>{{x+1}}</td>
+    {%for y in range(0,lenfacility)%}
+    {%if x<y%}
+    <td style="width: 125px;" id='{{x}}{{y}}'><input style="width: 125px;" type="number" id="{{x}}{{y}}" name="{{x}}{{y}}"></td>
+    {%else%}
+    <td style="background-color: dimgrey; width:125px" id='{{x}}{{y}}'><input type="number" id="{{x}}{{y}}" name="{{x}}{{y}}" hidden></td>
+    {%endif%}
+    {%endfor%}
+</tr>
+{%endfor%}
+  </Table>
+  <br>
+  <button type="submit">محاسبه امتیاز ترافیکی</button>
+</form>
+</body>
+</html>

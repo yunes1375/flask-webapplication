@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit page</title>
+</head>
+<style>
+    body{
+        font-family:"Arial", serif;
+    }
+    table,
+    th,
+    td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        text-align: center;
+        position: relative;
+    }
+    
+    .table {
+        font: optional;
+        background-color: rgb(98, 221, 180);
+        font-size: 15px;
+        text-align: center;
+        position: relative;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    
+    .row {
+        font: optional;
+        background-color: white;
+        font-size: 15px;
+        text-align: center;
+        position: relative;
+    }
+    </style>
+<body>
+    <script>
+        function rangeadder(){
+            document.getElementById("low_limit").disabled="";
+            document.getElementById("high_limit").disabled="";
+            document.getElementById("low_limit").required="required";
+            document.getElementById("high_limit").required="required";
+        }
+    </script>
+    <script>
+        function nonrangeadder(){
+            document.getElementById("low_limit").disabled="disabled";
+            document.getElementById("high_limit").disabled="disabled";           
+            document.getElementById("low_limit").required="";
+            document.getElementById("high_limit").required="";
+        }
+    </script>
+    <a href="/">پروژه ها</a>
+    <Table>
+        <tr class="table">
+            <th>ردیف</th>
+            <th>آیین نامه</th>
+            <th>ماده</th>
+            <th>الزامات</th>
+            <th>راهنمایی</th>  
+            <th>عملیات</th>        
+        </tr>
+   
+        {% for x in data: %}
+        <tr class="row" id="row{{x['idcheklist']}}">
+         <td>{%print(x["idcheklist"])%} </td>
+         <td>{%print(x["regulation"])%} </td>
+         <td>{%print(x["article"])%} </td>
+         <td>{%print(x["requirement"])%} </td>
+         {%if x["guidance_type"] == "image"%}
+         <td ><a href="showimage/{{x['guidance_filepath']}}" target="_blank">مشاهده جدول</a> </td>
+         {%elif  x["guidance_type"] == "No" %}
+         <td >ندارد </td>
+        {%endif%}
+        <td ><a href="delete/{{x['idcheklist']}}"> حذف معیار</a></td>
+        {%endfor%}
+        </table>
+        <br>
+        <div>افزودن معیار جدید</div>
+        <table>
+            <tr class="table">
+                <th>عنوان</th>
+                <th>مقدار</th>      
+            </tr>
+        <form action="http://localhost:5000/add" method="post" enctype=multipart/form-data>
+           <tr>
+               <td>شناسه معیار </td><td><input type="number" value="{{lendata+1}}" readonly name="idcheklist"></td>
+            </tr> 
+            <tr>
+                <td> ایین نامه </td><td><input type="text" name="regulation" required></td>
+            </tr>
+            <tr>
+                <td> ماده </td><td><input type="text" name="article" ></td>
+            </tr>
+           <tr>
+            <td>الزامات </td><td><input type="text" name="requirement" required></td>
+           </tr>
+            <tr>
+               <td> نوع پاسخ مد نظر </td>
+               <td>
+                <div><input type="radio" id="yes_no" name="answer_type" value="yes_no" onclick="nonrangeadder()" required>
+                <label for="yes_no">بله،خیر</label></div><br>
+                <div>
+                <input type="radio" id="range" name="answer_type" value="limit" onclick="rangeadder()" required>
+                <label for="range">بازه با دامنه</label><div id="rangesection">حد بالا    : <input type="number" id="high_limit" name="high_limit" disabled value="0">       حد پایین : <input type="number" id="low_limit" name="low_limit" disabled value="0"></div> 
+                </div> <br> 
+                <div>
+                <input type="radio" id="4_option" name="answer_type" value="4_option" onclick="nonrangeadder()" required>
+                <label for="4_option">رد،متوسط،کم،زیاد</label>
+                </div><br>
+        </td>
+            </tr>
+
+            <td>انتخاب عکس راهنما</td><td><input type="file" id="file" name="file"></td>
+        </table>
+            <button type="submit">افزودن معیار</button>
+        </form>
+</body>
+</html>

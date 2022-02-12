@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معیارها</title>
+</head>
+<style>
+body{
+    font-family:"Arial", serif;
+}
+table,
+th,
+td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+    position: relative;
+}
+
+.table {
+    font: optional;
+    background-color: rgb(98, 221, 180);
+    font-size: 15px;
+    text-align: center;
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.row {
+    font: optional;
+    background-color: white;
+    font-size: 15px;
+    text-align: center;
+    position: relative;
+}
+</style>
+<script>
+    function yesno_validator(x)
+    {
+        rowindex="row"+x
+         if (document.getElementById(x).value=="Yes"){
+             document.getElementById(rowindex).style.backgroundColor="green";
+         }
+         else if ((document.getElementById(x).value=="No")){
+             document.getElementById(rowindex).style.backgroundColor="red";
+         }
+         else{
+            document.getElementById(rowindex).style.backgroundColor="white";
+         }
+    }
+</script>
+<script>
+    function option_validator(x)
+    {
+        rowindex="row"+x
+         if (document.getElementById(x).value=="reject"){
+             document.getElementById(rowindex).style.backgroundColor="red";
+         }
+         else if ((document.getElementById(x).value=="low")){
+             document.getElementById(rowindex).style.backgroundColor="orange";
+         }
+         else if ((document.getElementById(x).value=="average")){
+            document.getElementById(rowindex).style.backgroundColor="yellow";
+         }
+        else if ((document.getElementById(x).value=="high")){
+                document.getElementById(rowindex).style.backgroundColor="green";
+        }
+         else{
+            document.getElementById(rowindex).style.backgroundColor="white";
+         }
+    }
+</script>
+<script>
+    function instruction(filepath)
+    {
+console.log(filepath)
+    }
+</script>
+<script>
+    function limit_validator(x,low_limit,high_limit)
+    {
+        rowindex="row"+x
+         if (document.getElementById(x).value >=low_limit && document.getElementById(x).value <=high_limit){
+             document.getElementById(rowindex).style.backgroundColor="green";
+         }
+         else if(document.getElementById(x).value <=low_limit || document.getElementById(x).value >=high_limit)
+         {
+            document.getElementById(rowindex).style.backgroundColor="red";
+         }
+         else{
+            document.getElementById(rowindex).style.backgroundColor="white";
+         }
+    }
+</script>
+<body>
+    <a href="/edit">مدیریت معیارها</a><br>
+    <form action = "http://localhost:5000/submit" method = "POST">
+    <Table>
+        <tr class="table">
+            <th>ردیف</th>
+            <th>آیین نامه</th>
+            <th>ماده</th>
+            <th>الزامات</th>
+            <th>راهنمایی</th>
+            <th>پاسخ شما</th>
+            <th>توضیحات</th>
+            
+        </tr>
+
+   {% for x in data: %}
+   
+   <tr class="row" id="row{{x['idcheklist']}}">
+    <td>{%print(x["idcheklist"])%} </td>
+    <td>{%print(x["regulation"])%} </td>
+    <td>{%print(x["article"])%} </td>
+    <td>{%print(x["requirement"])%} </td>
+    {%if x["guidance_type"] == "image"%}
+    <td ><a href="showimage/{{x['guidance_filepath']}}" target="_blank">مشاهده جدول</a> </td>
+    {%elif  x["guidance_type"] == "No" %}
+    <td >ندارد </td>
+   {%endif%}
+    {%if x["answer_type"] == "limit"%}
+    <td><div>low limit: {{x["low_limit"]}}</div><input onchange="limit_validator({{x['idcheklist']}},{{x['low_limit']}},{{x['high_limit']}})" id="{{x['idcheklist']}}" type="number" name= "{{x['idcheklist']}}" ><br> high limit: {{x["high_limit"]}}</div></td>
+    {%elif x["answer_type"] == "yes_no"%}
+    <td>
+        <select onchange="yesno_validator({{x['idcheklist']}})" id="{{x['idcheklist']}}" name="{{x['idcheklist']}}">
+            <option id="{{x['idcheklist']}}-" value="0">---</option>
+            <option value="Yes">بله</option>
+            <option value="No">خیر</option>
+        </select>
+</td>
+{%elif x["answer_type"] == "4_option"%}
+<td>
+    <select onchange="option_validator({{x['idcheklist']}})" id="{{x['idcheklist']}}" name="{{x['idcheklist']}}">
+        <option id="{{x['idcheklist']}}-" value="0">---</option>
+        <option value="reject">رد</option>
+        <option value="low">کم</option>
+        <option value="average">متوسط</option>
+        <option value="high">زیاد</option>
+    </select>
+</td>
+{%endif%}
+<td><input type="text" name="description_for_{{x['idcheklist']}}"> </td>
+  {%endfor%}
+</table>
+<p><input type = "submit" value = "submit" /></p>
+</form>
+</body>
+</html>

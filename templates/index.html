@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لیست پروژه ها</title>
+</head>
+<style>
+    .rectangle {
+      height: 75px;
+      width: 150 px;
+      background-color: rgb(29, 235, 207);
+    }
+    </style>
+<body>
+    <body>
+        <a href="/edit">ویرایش معیارها</a><br>
+        <h2>لیست پروژه ها</h2>
+        {%for x in data:%}
+        <div style="width:250px;height:100px;border:1px solid #000 ;background-color: rgb(29, 235, 207);display: inline-block;"><a href="/project/{{x['idprojects']}}/{{x['projectname']}}">پروژه {{x["projectname"]}}</a><br>{{x["description"]}}<br><a href="/projects/delete/{{x['idprojects']}}">حذف پروژه </a></div>
+        {%endfor%}
+        <p>افزودن پروژه</p>
+        
+        <!-- add project section -->
+        <div style="width:250px;height:100px;border:1px solid #000 ;background-color: rgb(29, 235, 207);display: block;">
+        <table>
+        <form action="http://localhost:5000/addproject" method="post" enctype=multipart/form-data>
+            <tr hidden>
+                <td>شناسه پروژه </td><td><input type="number" value="{{lendata+1}}" readonly name="idprojects"></td>
+             </tr> 
+             <tr>
+                 <td> نام پروژه </td><td><input type="text" name="projectname" required></td>
+             </tr>
+             <tr>
+                 <td> توضیحات</td><td><input type="text" name="description" ></td>
+             </tr>
+            <tr>
+         </table>
+             <button type="submit">افزودن پروژه</button>
+         </form>
+        </div>
+        </body>
+        <!-- add project secrion -->
+</body>
+</html>
