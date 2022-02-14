@@ -11,7 +11,7 @@
     <a style="display: inline-block;" href="/">همه پروژه ها</a>  <a style="display: inline-block;" href="/edit">ویرایش معیارها </a><br>
     <p>جا نمایی های پیشنهادی پروژه {{name}}</p>
     {%for x  in layouts%}
-    <div style="width:350px;height:150px;border:2px solid #000 ;background-color: rgb(29, 235, 207);display: inline-block;">
+    <div style="width:350px;height:250px;border:2px solid #000 ;background-color: rgb(29, 235, 207);display: inline-block;">
         <div>{{x['layoutname']}}</div>
         <a href="/layout/{{name}}/{{x['idlayouts']}}">محاسبه امتیاز ایمنی و ترافیکی مدل </a><br>
         <div> امتیاز ایمنی محاسبه شده : {{x["safetypoint"]}}</div>
@@ -20,12 +20,15 @@
         <a target="_blank" href="/cesiumviewer/{{x['idlayouts']}}"> مشاهده مدل سه بعدی تحت پلتفرم Cesium</a><br>
         <a target="_blank" href="/ifcviewer/{{x['idlayouts']}}"> مشاهده مدل سه بعدی تحت پلتفرم IFC viewer</a><br>
         <a target="_blank" href="/deletelayout/{{x['idlayouts']}}/{{name}}/{{_id}}"> حذف جانمایی</a>
+        <div>فاکتور تاثیر ایمنی پروژه : {{x["safetyfactor"]}}</div>
+        <div>فاکتور تاثیر ترافیکی پروژه : {{x["traficfactor"]}}</div><br>
+        <div>امتیاز کل : {{x["layoutpoint"]}}</div>
     </div>
     {%endfor%}
     <p> افزودن جانمایی برای پروژه {{name}}</p>
     <div style="width:350px;height:200px;border:1px solid #000 ;background-color: rgb(29, 235, 207);display: block;">
         <table>
-        <form action="http://localhost:5000/addlayout/{{lenlayout}}/{{name}}/{{_id}}" method="post" enctype=multipart/form-data>
+        <form action="http://176.97.218.65:5000/addlayout/{{lenlayout}}/{{name}}/{{_id}}" method="post" enctype=multipart/form-data>
             <tr hidden>
                 <td >شناسه جانمایی </td><td><input type="number" value="{{lenlayout}}" readonly name="idlayouts"></td>
              </tr> 

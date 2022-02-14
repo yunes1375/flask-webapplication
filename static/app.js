@@ -9,7 +9,7 @@ var viewer= new Cesium.viewer('cesiumContainer');
 
 
     var tileset = scene.primitives.add(new Cesium.Cesium3DTileset({
-      url: 'http://127.0.0.1:5000/static/a12/tileset.json'
+      url: 'http://176.97.218.65:5000/static/a12/tileset.json'
     }));
     tileset.readyPromise.then(function() {
       // console.log(tileset);

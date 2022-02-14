@@ -2,10 +2,9 @@ from contextlib import nullcontext
 from sqlite3 import Cursor
 from flask import Flask,request,render_template, flash,redirect, send_file,url_for,jsonify,session
 from h11 import Data
-from numpy import maximum
 from pymysql import NULL
 import json
-from flask_mysqldb import MySQL
+# from flask_mysqldb import MySQL
 import mysql.connector
 import os
 from zipfile import ZipFile
@@ -17,7 +16,8 @@ images_folder = os.path.join('static')
 #database user pass must be enterd here
 cnx = mysql.connector.connect(user='root', password='1290',
                               host='127.0.0.1',
-                              database='civil')
+                              database='civil',
+                              auth_plugin='mysql_native_password')
 def sql_data():
     data=[]
     cursor=cnx.cursor(dictionary=True) 
@@ -42,11 +42,22 @@ def insert_sql(finaldata):
         
 def insert_sql_layout(finaldata):
     Cursor10=cnx.cursor()
-    query10='insert into layouts (idlayouts,layoutname,projectname,projectid,ifcfilepath,tilesetfilepath,facilitynumbers,safetypoint,traficalponit) values (\'%s\' , \'%s\' , \'%s\' ,\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\' ) ;'%(int(finaldata["idlayouts"]) ,finaldata["layout name"] ,finaldata["projectname"],finaldata["idprojects"],finaldata["ifcfilepath"],finaldata["tilesetfilepath"],int(finaldata["facilitynumbers"]),str(finaldata["safetypoint"]),str(finaldata["traficalponit"]))
+    query10='insert into layouts (idlayouts,layoutname,projectname,projectid,ifcfilepath,tilesetfilepath,facilitynumbers,safetypoint,traficalponit,safetyfactor,traficfactor) values (\'%s\' , \'%s\' , \'%s\' ,\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\' ) ;'%(int(finaldata["idlayouts"]) ,finaldata["layout name"] ,finaldata["projectname"],finaldata["idprojects"],finaldata["ifcfilepath"],finaldata["tilesetfilepath"],int(finaldata["facilitynumbers"]),str(finaldata["safetypoint"]),str(finaldata["traficalponit"]),str(finaldata["safetyfactor"]),str(finaldata["traficfactor"]))
     Cursor10.execute(query10)
     cnx.commit()
     return True
     
+#get safety and trafical factor
+def sql_project_factors(projectid) :
+    safetyfactor=0
+    traficfactor=0
+    cursor12=cnx.cursor(dictionary=True)
+    query12='select safetyfactor,traficfactor from projects where idprojects =\'%s\';'%int(projectid)
+    cursor12.execute(query12)
+    for row in cursor12:
+        safetyfactor=row["safetyfactor"]
+        traficfactor=row["traficfactor"]
+    return (safetyfactor,traficfactor)
 
 # get projects list from mysql
 def projects_sql():
@@ -71,7 +82,7 @@ def layout_delete(id):
     return True
 def insert_sql_project(formdata):
     Cursor6=cnx.cursor()
-    query6='insert into projects (idprojects,projectname,description) values (\'%s\' , \'%s\' , \'%s\'  ) ;'%(formdata["idprojects"] ,formdata["projectname"] ,formdata["description"])
+    query6='insert into projects (idprojects,projectname,description,safetyfactor,traficfactor) values (\'%s\' , \'%s\' , \'%s\', \'%s\' , \'%s\'  ) ;'%(formdata["idprojects"] ,formdata["projectname"] ,formdata["description"],formdata["safetyfactor"] ,formdata["traficfactor"])
     Cursor6.execute(query6)
     cnx.commit()
     return True
@@ -92,10 +103,10 @@ def project_layout_getter(_id):
     return (lenlayouts,data)
 def get_layout_data(idlayout):
     data=[]
-    Cursor12=cnx.cursor(dictionary=True)
-    query12='select * from layouts where idlayouts = \'%s\' ;'%int(idlayout)
-    Cursor12.execute(query12)
-    for row in Cursor12:
+    Cursor14=cnx.cursor(dictionary=True)
+    query14='select * from layouts where idlayouts = \'%s\' ;'%int(idlayout)
+    Cursor14.execute(query14)
+    for row in Cursor14:
         data.append(row)
     return (data)
 def sql_layout_points(layout):
@@ -107,9 +118,15 @@ def sql_layout_points(layout):
         data.append(x)
     return data
 def sql_safetypoint_inserter(point,layout):
-    Cursor9=cnx.cursor(dictionary=True)
+    Cursor9=cnx.cursor()
     query9='update layouts set safetypoint = \'%s\' where idlayouts = \'%s\' ;'%(point,layout)
     Cursor9.execute(query9)
+    cnx.commit()
+def sql_trficalpoint_inserter(point,layout):
+    Cursor13=cnx.cursor()
+    query13='update layouts set traficalponit = \'%s\' where idlayouts = \'%s\' ;'%(point,layout)
+    Cursor13.execute(query13)
+    cnx.commit()
 app = Flask(__name__)
 app.secret_key = "super secret key"
 app.config['UPLOAD_FOLDER'] = images_folder
@@ -214,7 +231,10 @@ def add_layout(_id,projectname,projectid):
         else:
             formdata['ifcfilepath']=""
         formdata["safetypoint"]=0.00   
-        formdata["traficalponit"]=0.00   
+        formdata["traficalponit"]=0.00
+        (safetyfactor,traficfactor)=sql_project_factors(projectid)
+        formdata["safetyfactor"]=safetyfactor
+        formdata["traficfactor"]=traficfactor  
         insert_sql_layout(formdata)
         redirectpath='/'+'project'+'/'+projectid+'/'+projectname
         return redirect(redirectpath)
@@ -230,7 +250,7 @@ def submit():
             count=count+1
     point=points/count
     return render_template("score_page.html",point=point)
-@app.route('/submit/<project>/<layout>', methods = ['POST','GET'])
+@app.route('/submit_safety/<project>/<layout>', methods = ['POST','GET'])
 def submit_layout_safety(project,layout):
     formdata= request.data
     formdata=json.loads(formdata.decode('utf-8'))
@@ -241,9 +261,24 @@ def submit_layout_safety(project,layout):
         if "description" not in str(key):
             points=points+random()
             count=count+1
-    point=points/count
-    sql_safetypoint_inserter(point,layout)
-    return jsonify("point",str(point))
+    safetypoint=points/count
+    sql_safetypoint_inserter(safetypoint,layout)
+    return jsonify("safetypoint",str(safetypoint))
+@app.route('/submit_trafic/<project>/<layout>', methods = ['POST'])
+def submit_layout_trafic(project,layout):
+    formdata= request.data
+    formdata=json.loads(formdata.decode('utf-8'))
+    _keys=dict(formdata).keys()
+    points=0.0
+    count=0
+    for key in _keys:
+        if "description" not in str(key):
+            points=points+random()
+            count=count+1
+    traficpoint=points/count
+    sql_trficalpoint_inserter(traficpoint,layout)
+    print(traficpoint)
+    return jsonify("traficponit",str(traficpoint))
 @app.route('/delete/<_id>', methods = ['POST','GET'])
 def deletesqlflask(_id):
     deletesql(_id) 
@@ -262,6 +297,7 @@ def layoutdelete(_id,projectname,projectid):
 def edit():
     data=sql_data()
     ids=[]
+    print(len(data[0]))
     for x in data:
         ids.append(int(x["idcheklist"]))
     lendata=max(ids)
@@ -279,7 +315,9 @@ def index():
     return render_template("index.html",data=data,lendata=lendata)
 @app.route('/project/<_id>/<name>', methods = ['POST','GET'])
 def projects(_id,name):
-    (lenlayout,layouts)=project_layout_getter(_id)    
+    (lenlayout,layouts)=project_layout_getter(_id)
+    for x in layouts:
+        x["layoutpoint"]=float(x["safetyfactor"])*float(x["safetypoint"])+float(x["traficfactor"])*float(x["traficalponit"])
     return render_template('layout.html',layouts=layouts,_id=_id,name=name,lenlayout=int(lenlayout)+1)  
 @app.route('/layout/<project>/<layout>', methods = ['POST','GET'])
 def layout(project,layout):
@@ -296,4 +334,4 @@ def ifc(idlayout):
     return render_template('ifcviewer.html') 
 if __name__ == "__main__":
        app.debug=True
-       app.run()
+       app.run(host='176.97.218.65', port=5000)
